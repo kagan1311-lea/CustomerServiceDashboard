@@ -6,6 +6,7 @@ const base = airtable.base(env.airtableBaseId);
 
 export const usersTable = base("Users");
 export const inquiriesTable = base("Inquiries");
+export const messagesTable = base("InquiryMessages");
 
 // Airtable formulas take double-quoted strings; escape backslashes and quotes
 // before interpolating untrusted input (e.g. a login email) into a formula.

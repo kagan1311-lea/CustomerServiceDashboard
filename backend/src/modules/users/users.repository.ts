@@ -44,6 +44,11 @@ export async function findUserById(id: string): Promise<AirtableUser | null> {
   }
 }
 
+export async function listUsers(): Promise<AirtableUser[]> {
+  const records = await usersTable.select({ filterByFormula: "{Active} = TRUE()" }).all();
+  return records.map(mapRecord);
+}
+
 export async function createUser(input: {
   name: string;
   email: string;
