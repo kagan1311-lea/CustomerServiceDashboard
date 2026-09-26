@@ -30,6 +30,7 @@ jobs:
       - run: npm run build
         env:
           GITHUB_PAGES: "true"
+          VITE_API_URL: "https://customer-service-dashboard-backend.onrender.com/api"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: frontend/dist

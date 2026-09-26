@@ -1,5 +1,9 @@
 # Customer Service Dashboard
 
+**Live:** [frontend](https://kagan1311-lea.github.io/CustomerServiceDashboard/) (GitHub Pages) ·
+[backend](https://customer-service-dashboard-backend.onrender.com) (Render, free tier — the
+first request after idle may take ~30-60s to wake up).
+
 Phase 1 skeleton: authentication, roles, and an empty dashboard. See
 [CustomerServiceDashboard.md](CustomerServiceDashboard.md) for the business
 overview and [spec.md](spec.md) for the full technical specification.
