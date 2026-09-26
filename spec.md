@@ -163,57 +163,58 @@ Build a web-based Customer Service Dashboard for small and mid-sized businesses 
 
 ### 5.4 Scalability
 - Designed to handle growth from hundreds to tens of thousands of inquiries without architectural rework (proper indexing, pagination, caching where needed).
+- Airtable enforces a 5 requests/second rate limit per base and a practical ceiling around 50,000 records per table on standard plans; the backend should cache list views and batch writes, and this should be revisited (e.g., migrate to PostgreSQL per the data layer trade-off in section 6.3) if the SMB's inquiry volume approaches those limits.
 
 ---
 
-## 6. Technology Stack (Reference Implementation)
-
-You can adapt this to your preferred stack; this is a pragmatic SMB-friendly choice.
+## 6. Technology Stack (Chosen Implementation)
 
 ### 6.1 Frontend
-- Framework: React or Vue (SPA).
-- UI library: Material UI, Ant Design, or similar.
-- State management: React Query / SWR or Vuex/Pinia.
+- Framework: React + TypeScript, built with Vite (SPA).
+- UI library: MUI (Material UI).
+- State/data: React Context for auth state; direct API calls via axios.
 
 ### 6.2 Backend
-- Language/Framework options:
-  - Node.js + Express/NestJS
-  - Python + FastAPI/Django
-  - PHP + Laravel (common in SMB environments)
-- RESTful API (or GraphQL if preferred).
+- Node.js + Express + TypeScript.
+- RESTful API.
+- Data layer: Airtable — no self-hosted database. The backend talks to Airtable over its REST API (via the official `airtable` Node client) instead of a relational database.
 
-### 6.3 Database
-- Relational DB:
-  - PostgreSQL or MySQL.
-- Schema design to support:
-  - Users, Roles
-  - Inquiries, InquiryMessages, InquiryAttachments
-  - AuditLog
+### 6.3 Data Layer (Airtable)
+- An Airtable base ("Customer Service Dashboard") holds the tables described in section 7.
+- The backend authenticates to Airtable with a Personal Access Token (PAT) scoped to this base, kept server-side only (`AIRTABLE_API_KEY` env var) and never exposed to the frontend.
+- Airtable's REST API is rate-limited to 5 requests/second per base; the backend should batch reads/writes and avoid per-row API calls in loops as inquiry volume grows (see section 5.4).
+- Trade-off vs. a relational DB: much faster to stand up, and gives non-technical staff a spreadsheet-like UI to inspect/edit records directly, at the cost of query flexibility, transactional guarantees, and the 5 req/s rate ceiling. Revisit (e.g., migrate to PostgreSQL) if the SMB outgrows Airtable's limits.
+- Current PAT scope is `data.records:read` only (no write). This is sufficient for Phase 1 (login reads Users, the dashboard summary reads Inquiries), but blocks anything that writes to Airtable: the `npm run seed` admin-creation script, and all of Phase 2 (creating inquiries, changing status/priority/assignment, adding notes). Add `data.records:write` to the token before starting Phase 2.
 
 ### 6.4 Infrastructure
 - Hosting:
-  - Single VM / VPS or managed platform (e.g., Render, Railway, small AWS/Azure setup).
+  - Single VM / VPS or managed platform (e.g., Render, Railway, small AWS/Azure setup) for the Node.js API and the static frontend build.
 - CI/CD:
-  - GitHub Actions / GitLab CI for build, test, deploy.
+  - GitHub Actions for build and type-check on every push.
 - Backups:
-  - Regular DB backups (daily at minimum).
+  - Airtable keeps revision history and snapshots on paid plans; export the base periodically (CSV or API dump) as an independent backup.
 
 ---
 
 ## 7. Data Model (High-Level)
 
-### 7.1 Core Entities
+Implemented as tables inside a single Airtable base (see section 6.3). Each table's Airtable record ID (`recXXXXXXXXXXXXXX`) serves as the entity's primary key — there is no separate auto-increment `id` field.
 
-- **User**
-  - id, name, email, password_hash, role, active, created_at, updated_at
-- **Inquiry**
-  - id, customer_name, customer_email, customer_phone, subject, category, source, status, priority, assigned_user_id, created_at, updated_at, closed_at
-- **InquiryMessage**
-  - id, inquiry_id, sender_type (customer/agent/system), sender_id (nullable for customer), content, is_internal_note, created_at
-- **InquiryAttachment**
-  - id, inquiry_id, message_id (nullable), file_path, file_type, uploaded_by, created_at
-- **AuditLog**
-  - id, entity_type, entity_id, action, old_values (JSON), new_values (JSON), user_id, created_at
+### 7.1 Core Entities (Phase 1 — implemented)
+
+- **Users** table
+  - Name, Email, Password Hash, Role (single select: Admin/Manager/Agent), Active (checkbox)
+- **Inquiries** table
+  - Subject, Customer Name, Customer Email, Customer Phone, Category, Source (single select), Status (single select), Priority (single select), Assigned Agent (link to Users), Created At, Updated At, Closed At
+
+### 7.2 Additional Entities (Phase 2+ — not yet created)
+
+- **InquiryMessages** table (linked to Inquiries)
+  - Sender Type (Customer/Agent/System), Sender (link to Users, nullable for customer), Content, Is Internal Note (checkbox), Created At
+- **InquiryAttachments** table (linked to Inquiries, optionally to a message)
+  - File (Airtable attachment field), File Type, Uploaded By (link to Users), Created At
+- **AuditLog** table
+  - Entity Type, Entity ID, Action, Old Values (long text/JSON), New Values (long text/JSON), User (link to Users), Created At
 
 ---
 

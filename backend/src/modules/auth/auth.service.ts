@@ -1,4 +1,4 @@
-import { prisma } from "../../db/prisma";
+import { findUserByEmail, findUserById } from "../users/users.repository";
 import { verifyPassword } from "../../utils/password";
 import { signAuthToken } from "../../utils/jwt";
 
@@ -9,8 +9,8 @@ export class InvalidCredentialsError extends Error {
 }
 
 export async function login(email: string, password: string) {
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !user.active) {
+  const user = await findUserByEmail(email);
+  if (!user || !user.active || !user.passwordHash) {
     throw new InvalidCredentialsError();
   }
 
@@ -27,7 +27,7 @@ export async function login(email: string, password: string) {
 }
 
 export async function getCurrentUser(userId: string) {
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await findUserById(userId);
   if (!user) return null;
   return { id: user.id, name: user.name, email: user.email, role: user.role };
 }

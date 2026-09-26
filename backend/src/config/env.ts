@@ -10,7 +10,8 @@ function required(name: string): string {
 
 export const env = {
   port: Number(process.env.PORT ?? 4000),
-  databaseUrl: required("DATABASE_URL"),
+  airtableApiKey: required("AIRTABLE_API_KEY"),
+  airtableBaseId: required("AIRTABLE_BASE_ID"),
   jwtSecret: required("JWT_SECRET"),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "8h",
   corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:5173",

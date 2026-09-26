@@ -7,12 +7,10 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "lint": "tsc --noEmit",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "seed": "tsx scripts/seed-airtable.ts"
   },
   "dependencies": {
-    "@prisma/client": "^5.20.0",
+    "airtable": "^0.12.2",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -26,8 +24,10 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20.14.0",
-    "prisma": "^5.20.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
   }
 }

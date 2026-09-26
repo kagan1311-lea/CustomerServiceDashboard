@@ -18,7 +18,6 @@ jobs:
         with:
           node-version: 20
       - run: npm install
-      - run: npx prisma generate
       - run: npm run build
 
   frontend:
