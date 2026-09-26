@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 const NAV_LINKS = [
   { to: "/", label: "Dashboard" },
   { to: "/inquiries", label: "Inquiries" },
+  { to: "/reports", label: "Reports" },
 ];
 
 export function AppLayout({ children }: { children: ReactNode }) {

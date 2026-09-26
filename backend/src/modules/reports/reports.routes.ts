@@ -3,8 +3,21 @@ import { requireAuth } from "../../middleware/auth";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { listInquiries } from "../inquiries/inquiries.repository";
 import { parseListQuery } from "../inquiries/inquiries.controller";
+import { getReportsAnalytics } from "./reports.service";
 
 export const reportsRouter = Router();
+
+// spec.md section 13.5 — Reports pages (volume, response/resolution times,
+// agent performance, aging). `days` controls the time-series window.
+reportsRouter.get(
+  "/analytics",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const days = Math.min(90, Math.max(7, Number(req.query.days) || 14));
+    const analytics = await getReportsAnalytics(days);
+    res.json(analytics);
+  })
+);
 
 function toCsvField(value: string | number | null | undefined): string {
   const s = value === null || value === undefined ? "" : String(value);
